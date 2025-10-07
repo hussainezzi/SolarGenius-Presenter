@@ -3,7 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { FALLBACK_BENEFITS, FALLBACK_FINANCING_SCENARIOS, FALLBACK_FAQ, FALLBACK_IMAGE_URL } from '../constants';
 import type { FinancingScenario, FAQItem } from '../types';
 
-const API_KEY = process.env.API_KEY;
+const API_KEY = "AIzaSyAf6a00_m7aO0iWarM_lG7RYy-pKtqlty4";
 
 const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
