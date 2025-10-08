@@ -1,13 +1,23 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { FALLBACK_BENEFITS, FALLBACK_FINANCING_SCENARIOS, FALLBACK_FAQ, FALLBACK_IMAGE_URL } from '../constants';
 import type { FinancingScenario, FAQItem } from '../types';
 
-const API_KEY = "AIzaSyAf6a00_m7aO0iWarM_lG7RYy-pKtqlty4";
+let ai: GoogleGenAI | null = null;
 
-const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
+export const updateApiKey = (key: string) => {
+    if (key) {
+        try {
+            ai = new GoogleGenAI({ apiKey: key });
+        } catch (error) {
+            console.error("Error initializing Gemini AI with the provided key:", error);
+            ai = null;
+        }
+    } else {
+        ai = null;
+    }
+};
 
-export const isApiKeyAvailable = (): boolean => !!API_KEY;
+export const isAiReady = (): boolean => !!ai;
 
 export const generateBenefits = async (personaPrompt: string): Promise<string> => {
   if (!ai) return FALLBACK_BENEFITS;

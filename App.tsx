@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { PERSONAS } from './constants';
 import * as geminiService from './services/geminiService';
@@ -6,6 +5,8 @@ import type { Persona, FinancingScenario, FAQItem } from './types';
 import Card from './components/Card';
 import Spinner from './components/Spinner';
 import ApiKeyStatus from './components/ApiKeyStatus';
+import ApiKeyManager from './components/ApiKeyManager';
+import WorkflowHero from './components/WorkflowHero';
 
 type LoadingStates = {
     benefits: boolean;
@@ -16,6 +17,8 @@ type LoadingStates = {
 
 const App: React.FC = () => {
     const [apiKeyAvailable, setApiKeyAvailable] = useState<boolean>(false);
+    const [userApiKey, setUserApiKey] = useState<string>('');
+
     const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
     const [customData, setCustomData] = useState<string>('');
     const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
@@ -34,8 +37,27 @@ const App: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        setApiKeyAvailable(geminiService.isApiKeyAvailable());
+        const storedKey = localStorage.getItem('gemini_api_key') || '';
+        setUserApiKey(storedKey);
     }, []);
+
+    useEffect(() => {
+        const envKey = process.env.API_KEY;
+        const keyToUse = userApiKey || envKey;
+
+        if (keyToUse) {
+            geminiService.updateApiKey(keyToUse);
+            setApiKeyAvailable(true);
+        } else {
+            geminiService.updateApiKey('');
+            setApiKeyAvailable(false);
+        }
+    }, [userApiKey]);
+
+    const handleUserApiKeyChange = (key: string) => {
+        setUserApiKey(key);
+        localStorage.setItem('gemini_api_key', key);
+    };
 
     const resetState = () => {
         setBenefits('');
@@ -112,6 +134,9 @@ const App: React.FC = () => {
             <main className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* --- Sidebar --- */}
                 <aside className="lg:col-span-1 space-y-6">
+                    <Card title="Settings">
+                        <ApiKeyManager apiKey={userApiKey} onApiKeyChange={handleUserApiKeyChange} />
+                    </Card>
                     <Card title="1. Select Customer Persona">
                         <div className="space-y-3">
                             {PERSONAS.map((persona) => (
@@ -144,11 +169,12 @@ const App: React.FC = () => {
 
                 {/* --- Content Area --- */}
                 <section className="lg:col-span-2 space-y-8">
+                    <WorkflowHero />
                     {!activePrompt && (
                         <Card>
                             <div className="text-center py-16">
                                 <h2 className="text-2xl font-bold">Welcome, Solar Agent!</h2>
-                                <p className="mt-2">Please select a customer persona or enter custom data to begin generating a presentation.</p>
+                                <p className="mt-2">Follow the steps above to generate a presentation.</p>
                             </div>
                         </Card>
                     )}
